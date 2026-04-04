@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+    # Main bot service
+    apkonsult:
+        container_name: apkonsult
+        image: ghcr.io/sombody101/apkonsult:latest # Specify image name (for watchtower)
+        volumes:
+            - /mnt/AppStorage/apkonsult-bot/0vol:/app/0vol
+        environment:
+            # Prevents CultureNotFoundException on container start
+            - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+            - LAVALINK_SERVER_PASSWORD=${LAVALINK_SERVER_PASSWORD}
+            - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
+        restart: unless-stopped
+        user: 1001:1001
+
+    repl-cs-compiler:
+        image: ghcr.io/discord-csharp/csharprepl:latest
+        restart: always
+        read_only: true
+        user: www-data
+        environment:
+            - ASPNETCORE_URLS=http://+:31337
+        ports:
+            - "31337:31337"
+        tmpfs:
+            - /tmp
+            - /var

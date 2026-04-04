@@ -1,0 +1,100 @@
+﻿using LloydBot.CommandChecks.Attributes;
+using LloydBot.Context;
+using LloydBot.Models.Main;
+using DSharpPlus.Commands;
+using DSharpPlus.Commands.Trees.Metadata;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Serilog;
+using System.Text;
+
+namespace LloydBot.Commands.Admin;
+
+/// <summary>
+/// This isn't actually data collection, just user management in the DB.
+/// So maybe it is data collection then...
+/// </summary>
+[Command("db"), Hidden, RequireBotOwner]
+public sealed class DataCollectionCommand(LloydBotContext _dbContext)
+{
+    [Command("sync"), Hidden, RequireBotOwner]
+    public async Task SyncGuildUsersAsync(CommandContext ctx)
+    {
+        if (ctx.Guild is null)
+        {
+            await ctx.RespondAsync("Guild is null.");
+            return;
+        }
+
+        DbSet<UserDbEntity> dbUsers = _dbContext.Set<UserDbEntity>();
+
+        List<ulong> dbUserIds = await dbUsers.Select(u => u.Id).ToListAsync();
+
+        IAsyncEnumerable<DiscordMember> newGuildUsers = ctx.Guild.GetAllMembersAsync()
+            .Where(gm => !dbUserIds.Contains(gm.Id));
+
+        int newCount = 0;
+        await foreach (DiscordMember? user in newGuildUsers)
+        {
+            UserDbEntity dbUser = new(user);
+
+            _ = await dbUsers.AddAsync(dbUser);
+            newCount++;
+
+            Log.Information("Creating new DB user {{id:{Id}, name:{Username}}}", user.Id, user.Username);
+        }
+
+        _ = await _dbContext.SaveChangesAsync();
+
+        await ctx.RespondAsync($"Found and added {newCount}.");
+    }
+
+    [Command("collect"), Hidden, TextAlias("extract")]
+    public async Task CollectGuildUsersAsync(CommandContext ctx)
+    {
+        if (ctx.Guild is null)
+        {
+            await ctx.RespondAsync("Guild is null.");
+            return;
+        }
+
+        List<DiscordMember> allGuildMembers = await ctx.Guild.GetAllMembersAsync().ToListAsync();
+
+        List<UserDbEntity> allDbUsers = await _dbContext.Set<UserDbEntity>().ToListAsync();
+
+        var commonUsers = allGuildMembers.Join(
+            allDbUsers,
+            guildMember => guildMember.Id,
+            dbUser => dbUser.Id,
+            (guildMember, dbUser) => new { 
+                GuildMember = guildMember, 
+                DbEntity = dbUser 
+            }
+        );
+
+        int updateCount = 0;
+        foreach (var pair in commonUsers)
+        {
+            pair.DbEntity.UpdateUser(pair.GuildMember);
+            updateCount++;
+        }
+
+        _ = await _dbContext.SaveChangesAsync();
+
+        await ctx.RespondAsync($"Found and updated {updateCount}.");
+    }
+
+    [Command("download"), Hidden, RequireBotOwner]
+    public async Task GetUserHistoryAsync(CommandContext ctx)
+    {
+        DbSet<UserDbEntity> dbUsers = _dbContext.Set<UserDbEntity>();
+
+        string usersJson = JsonConvert.SerializeObject(dbUsers, Formatting.Indented);
+        DiscordMessageBuilder message = new DiscordMessageBuilder()
+            .AddFile($"users-{Program.BUILD_TYPE.ToLower()}.json", new MemoryStream(Encoding.UTF8.GetBytes(usersJson)));
+
+        DiscordDmChannel dmChannel = await ctx.User.CreateDmChannelAsync();
+        _ = await dmChannel.SendMessageAsync(message);
+    }
+}

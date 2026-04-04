@@ -1,0 +1,32 @@
+﻿using LloydBot.Context;
+using LloydBot.Models.Main;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace LloydBot.Commands.AutoCompleters;
+
+internal class ActionNameAutocomplete(LloydBotContext _dbContext) : IAutoCompleteProvider
+{
+    public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
+    {
+        GuildDbEntity? guild = await _dbContext.Guilds
+            .Include(x => x.DefinedActions)
+            .FirstOrDefaultAsync(x => x.Id == context.Guild.Id);
+
+        if (guild is null)
+        {
+            return [];
+        }
+
+        IEnumerable<EventAction> actions = guild.DefinedActions
+            .Where(x => x.ActionName.Contains(context.UserInput, StringComparison.OrdinalIgnoreCase));
+
+        return !actions.Any()
+            ? []
+            : actions
+            .Take(25)
+            .Select(x => new DiscordAutoCompleteChoice(x.ActionName, x.ActionName));
+    }
+}

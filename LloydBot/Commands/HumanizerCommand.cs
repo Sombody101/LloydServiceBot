@@ -1,0 +1,57 @@
+﻿using LloydBot.CommandChecks;
+using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
+using DSharpPlus.Commands.Trees.Metadata;
+using DSharpPlus.Entities;
+using Humanizer;
+
+namespace LloydBot.Commands;
+
+[Command("humanize"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+public static class HumanizerCommand
+{
+    [Command("text"), DefaultGroupCommand, UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+    public static async ValueTask HumanizeAsync(CommandContext ctx, [RemainingText] string text)
+    {
+        await ctx.RespondAsync(await HumanizeTextAsync(text));
+    }
+
+    [Command("title"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+    public static async ValueTask HumanizeTitleAsync(CommandContext ctx, [RemainingText] string text)
+    {
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.Title));
+    }
+
+    [Command("caps"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+    public static async ValueTask HumanizeCapsAsync(CommandContext ctx, [RemainingText] string text)
+    {
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.AllCaps));
+    }
+
+    [Command("lower"), TextAlias("low"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+    public static async ValueTask HumanizeLowerAsync(CommandContext ctx, [RemainingText] string text)
+    {
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.LowerCase));
+    }
+
+    private static async ValueTask<DiscordEmbedBuilder> HumanizeTextAsync(string text, LetterCasing casing = LetterCasing.Sentence)
+    {
+        try
+        {
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
+                .WithColor(DiscordColor.SpringGreen)
+                .AddField("Humanized Text", $"```\n{text.Humanize(casing)}\n```");
+
+            return embed;
+        }
+        catch (Exception e)
+        {
+            await e.LogToWebhookAsync();
+
+            return new DiscordEmbedBuilder()
+                .WithColor(DiscordColor.Red)
+                .AddField("Error while humanizing text!", e.Message);
+        }
+    }
+}

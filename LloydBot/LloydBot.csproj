@@ -1,0 +1,101 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DSharpPlus" Version="5.0.0-nightly-02578" />
+		<PackageReference Include="DSharpPlus.Commands" Version="5.0.0-nightly-02578" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0-nightly-02578" />
+		<PackageReference Include="Humanizer.Core" Version="3.0.10" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.3.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.3.0" />
+
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.5" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="10.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="MoonSharp" Version="2.0.0" />
+
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+
+		<PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.0.0" />
+
+		<PackageReference Include="Serilog" Version="4.3.1" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="System.Linq.Async" Version="7.0.0" />
+    <PackageReference Include="UnitsNet" Version="5.75.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Condition="'$(Configuration)'=='Debug'" Update="Binaries\Lavalink.jar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>Lavalink.jar</TargetPath>
+    </None>
+
+	 <None Condition="'$(Configuration)'=='Debug'" Update="Binaries\application.yml">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<TargetPath>application.yml</TargetPath>
+	 </None>
+    <None Update="Properties\AssemblyInfo.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AssemblyInfo.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AssemblyInfo.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AssemblyInfo.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(DevEnvDir)'!='' And '$(DevEnvDir)'!='*Undefined*'">
+		<Message Text="Updaing version info." />
+		<Exec Command="&quot;$(DevEnvDir)TextTransform.exe&quot; -out &quot;$(ProjectDir)\Properties\AssemblyInfo.cs&quot; &quot;$(ProjectDir)\Properties\AssemblyInfo.tt&quot;" />
+	</Target>
+	
+	<ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
+</Project>
