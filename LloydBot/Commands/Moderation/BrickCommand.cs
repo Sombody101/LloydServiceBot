@@ -1,7 +1,10 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using LloydBot.CommandChecks;
 using Serilog;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -10,7 +13,7 @@ namespace LloydBot.Commands.Moderation;
 
 public static class BrickCommand
 {
-    private const string DEFAULT_TIMEOUT_MESSAGE = "get bricked";
+    private const string DEFAULT_TIMEOUT_MESSAGE = "get bricked, kid";
 
     private static readonly string[] brickGifs = [
         "https://tenor.com/view/clonk-hooplah-brick-spongebob-noisy-gif-17264229", // Spongebob
@@ -33,16 +36,16 @@ public static class BrickCommand
         DiscordUser user,
 
         [Description($"The reason for the timeout. Defaults to '{DEFAULT_TIMEOUT_MESSAGE}'.")]
-        string reason = default!)
+        string reason = DEFAULT_TIMEOUT_MESSAGE)
     {
-        DiscordMember member = user as DiscordMember ?? await ctx.Guild?.GetMemberAsync(user.Id)!;
+        DiscordMember? member = user as DiscordMember ?? await ctx.Guild?.GetMemberAsync(user.Id);
 
         if (member is null)
         {
             return;
         }
 
-        await BrickMemberAsync(ctx, member, null, reason);
+        await ModBrickUserAsync(ctx, member, null, reason);
     }
 
     public static async Task BrickTheLittleShitAsync(
@@ -52,7 +55,7 @@ public static class BrickCommand
         ulong userId,
 
         [Description($"The reason for the timeout. Defaults to '{DEFAULT_TIMEOUT_MESSAGE}'.")]
-        string reason = default!)
+        string reason = DEFAULT_TIMEOUT_MESSAGE)
     {
         DiscordMember member = await ctx.Guild?.GetMemberAsync(userId)!;
 
@@ -62,13 +65,39 @@ public static class BrickCommand
             return;
         }
 
-        await BrickMemberAsync(ctx, member, null, reason);
+        await ModBrickUserAsync(ctx, member, null, reason);
     }
 
-    private static async Task BrickMemberAsync(CommandContext ctx, DiscordMember member, DateTime? duration, string? message)
+    [Command("ubrick"),
+        Description("Bricks the specified user with an optional message."),
+        UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+    public static async ValueTask BrickTheFriendAsync(
+        CommandContext ctx,
+
+        [Description("The @ of the wanted user.")]
+        DiscordUser user,
+
+        [Description($"The reason for the bricking. Defaults to '{DEFAULT_TIMEOUT_MESSAGE}'.")]
+        string reason = DEFAULT_TIMEOUT_MESSAGE)
+    {
+        await BrickTheFriendAsync(ctx, user.Id, reason);
+    }
+
+    public static async ValueTask BrickTheFriendAsync(
+        CommandContext ctx,
+
+        [Description("The ID of the wanted user.")]
+        ulong userid,
+
+        [Description($"The reason for the bricking. Defaults to '{DEFAULT_TIMEOUT_MESSAGE}'.")]
+        string reason = DEFAULT_TIMEOUT_MESSAGE)
+    {
+        await BrickMemberAsync(ctx, userid, reason);
+    }
+
+    private static async Task ModBrickUserAsync(CommandContext ctx, DiscordMember member, DateTime? duration, string? message)
     {
         duration ??= DateTime.Now.AddHours(1);
-        message ??= PickGif();
 
         try
         {
@@ -85,13 +114,29 @@ public static class BrickCommand
             Log.Logger.Error(ex, "Failed to time user out.");
         }
 
-        await ctx.Channel.SendMessageAsync("get bricked, kid");
-        await ctx.Channel.SendMessageAsync(message);
+        await BrickMemberAsync(ctx, member.Id, message);
+    }
+
+    private static async Task BrickMemberAsync(CommandContext ctx, ulong userid, string? message)
+    {
+        message ??= PickGif();
+
+        if (!message.Contains("http"))
+        {
+            message += PickGif();
+        }
+
+        if (ctx is SlashCommandContext slashContext)
+        {
+            return;
+        }
+
+        await ctx.Channel.SendMessageAsync($"<@{userid}>\n{message}");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string PickGif()
     {
-        return brickGifs[Random.Shared.Next(0, brickGifs.Length)];
+        return $"[.]({brickGifs[Random.Shared.Next(0, brickGifs.Length)]})";
     }
 }
