@@ -396,11 +396,12 @@ public sealed class BotManager(LloydBotContext _dbContext, HttpClient _httpClien
     }
 
     [Command("update"), Hidden, RequireBotOwner]
-    public sealed class UpdateManager(
+    public sealed class UpdateManager
 #if RELEASE
+        (
         HttpClient _httpClient, TokensModel tokens, ILogger<UpdateManager> _logger
-#endif
         )
+#endif
     {
         [Command("update"),
             TextAlias("upgrade"),

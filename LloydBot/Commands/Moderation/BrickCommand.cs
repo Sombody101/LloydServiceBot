@@ -70,7 +70,8 @@ public static class BrickCommand
 
     [Command("ubrick"),
         Description("Bricks the specified user with an optional message."),
-        UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask BrickTheFriendAsync(
         CommandContext ctx,
 
@@ -126,12 +127,15 @@ public static class BrickCommand
             message += PickGif();
         }
 
+        message = $"<@{userid}>\n{message}";
+
         if (ctx is SlashCommandContext slashContext)
         {
+            slashContext.Channel.SendMessageAsync(message);
             return;
         }
 
-        await ctx.Channel.SendMessageAsync($"<@{userid}>\n{message}");
+        await ctx.Channel.SendMessageAsync(message);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
