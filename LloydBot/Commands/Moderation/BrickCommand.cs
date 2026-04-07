@@ -131,7 +131,7 @@ public static class BrickCommand
 
         if (ctx is SlashCommandContext slashContext)
         {
-            slashContext.Channel.SendMessageAsync(message);
+            await slashContext.RespondAsync(message);
             return;
         }
 
