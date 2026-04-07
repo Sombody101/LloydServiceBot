@@ -16,14 +16,13 @@ public static class BrickCommand
     private const string DEFAULT_TIMEOUT_MESSAGE = "get bricked, kid";
 
     private static readonly string[] brickGifs = [
-        "https://tenor.com/view/clonk-hooplah-brick-spongebob-noisy-gif-17264229", // Spongebob
-        "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTd5b3o2MngwaTYxN254azJ6NHpjeTlld21kcTI0Ym10MDB5eDR1dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qhUFBEIApYR0VTfC1v/giphy.gif", // Bloody brick
-        "https://media.gifdb.com/brick-asian-girl-throw-hit-eosuh35q558n3dyf.gif", // Light toss
-        "https://tenor.com/k9pyA1WpOp.gif", // Kat
-        "https://tenor.com/ipCKJIaMzko.gif", // IDEK
+        "https://c.tenor.com/pgc1fF8_SYsAAAAd/tenor.gif", // Spongebob
+        "https://i.giphy.com/qhUFBEIApYR0VTfC1v.webp", // Bloody brick
+        "https://gifdb.com/images/high/brick-asian-girl-throw-hit-eosuh35q558n3dyf.webp", // Light toss
+        "https://media.tenor.com/AhBxuESbEQsAAAAj/jefrooo-brick.gif", // Kat
         "https://media.tenor.com/iUjXDBq2odwAAAAM/ajr-brick-throw.gif", // AJR
-        "https://tenor.com/l1Yt0CVkNiA.gif", // Polly dog
-        "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjM0ZWE4dDA0Zjd4amh6YzhwM3Q5dWduZmc5c2M5anl0aWlhOTRlbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8maQUL5HiZbYLeMqXl/giphy.gif", // Steak throw
+        "https://c.tenor.com/ijutQ8PsqEYAAAAd/tenor.gif", // Polly dog
+        "https://i.giphy.com/8maQUL5HiZbYLeMqXl.webp", // Steak throw
     ];
 
     [Command("brick"),
